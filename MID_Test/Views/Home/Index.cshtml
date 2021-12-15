@@ -1,0 +1,122 @@
+﻿@using MID_Test.Models
+@model Employee
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<div style="margin:20px 0;">
+    <a id="openBtn" href="javascript:void(0)" class="easyui-linkbutton" onclick="openAddEmpl()">Добавить</a>
+    <a id="addFileBtn" href="javascript:void(0)" class="easyui-linkbutton" onclick="$('#ff').dialog('open')">Добавить файл</a>
+</div>
+
+<table id="dg" class="easyui-datagrid" data-options="url: '/Home/GetAll/',method: 'get',fitColumns:true,singleSelect:true,idField:'Id'">
+    <thead>
+        <tr>
+            <th data-options="field:'action',formatter:buttonFormat"></th>
+            <th data-options="field:'Id'">Id</th>
+            <th data-options="field:'Number'">Тaбельный номер</th>
+            <th data-options="field:'Name'">Имя</th>
+            <th data-options="field:'Gender'">Пол</th>
+            <th data-options="field:'BirthDate',formatter:formatDate1">Дата рождения</th>
+            <th data-options="field:'IsInternal'">Штатный сотрудник</th>
+        </tr>
+    </thead>    
+</table>
+<div id="ff" class="easyui-dialog" title="Добавить файл" data-options="iconCls:'icon-save', closed:true" style="width:400px;height:600px;padding:10px">
+    @using (Html.BeginForm("SendFile", "Home", FormMethod.Post, new { id = "uploadFile", enctype = "multipart/form-data" }))
+    {
+        <input id="chooseFile" class="easyui-filebox" name="file1" data-options="prompt:'Choose a file...'" style="width:200px">
+        <a id="btn_add" href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="sendFile()">Add File</a>
+    }    
+</div>
+
+    <div id="dlg" class="easyui-dialog" title="Добавить сотрудника" data-options="iconCls:'icon-save', closed: @((Model == null).ToString().ToLower())" style="width:400px;height:600px;padding:10px">
+        <form id="form" action="" method="post">
+            @Html.ValidationSummary(true)<br>
+            @Html.HiddenFor(model => model.Id)
+            @Html.LabelFor(model => model.Number)
+            @Html.TextBoxFor(model => model.Number, new Dictionary<string, object>() { { "class", "easyui-textbox" } })<br>
+            @Html.LabelFor(model => model.Name)
+            @Html.TextBoxFor(model => model.Name, new Dictionary<string, object>() { { "class", "easyui-textbox" }, { "data-options", "required:true" } })<br>
+            @Html.LabelFor(model => model.Gender)
+            @Html.DropDownListFor(m => m.Gender,
+                new SelectList(Enum.GetValues(typeof(Gender))),
+                new Dictionary<string, object>() { { "class", "easyui-combobox" }, { "data-options", "required:true" } })<br>
+            @Html.LabelFor(model => model.BirthDate)
+            @Html.TextBoxFor(model => model.BirthDate, new Dictionary<string, object>() { { "class", "easyui-datebox" }, { "data-options", "required:true,formatter:myformatter,parser:myparser" } })<br>
+            @Html.LabelFor(model => model.IsInternal)
+            @Html.DropDownListFor(model => model.IsInternal, new List<SelectListItem>()
+            {
+                new SelectListItem() { Text = "Да", Value = "True" },
+                new SelectListItem() { Text = "Нет", Value = "False"}
+            }, new Dictionary<string, object>() { { "class", "easyui-combobox" }, { "data-options", "required:true" } })<br>
+
+            <div style="text-align:center">
+                <input id="addBtn" type="submit" value="Сохранить" class="easyui-linkbutton" data-options="plain: true">
+                <input id="editBtn" type = "hidden" value="Редактировать" formaction="@Url.Action("Edit")" formmethod="post" class="easyui-linkbutton" data-options="plain: true" /> 
+            </div>
+        </form>
+    </div>
+    <script type="text/javascript">
+        function openAddEmpl() {
+            var add = document.getElementById("addBtn");
+            add.type = "submit";
+            var edit = document.getElementById("editBtn");
+            edit.type = "hidden";
+            $('#dlg').dialog('open')
+        }
+        function sendFile() {
+            if ($('#chooseFile').filebox('getValue') != "") {
+                $('#uploadFile').submit();
+            }
+        }
+        function formatDate1(val, row) {
+            var date = new Date(parseInt(val.replace("/Date(", "").replace(")/", ""), 10));
+            return formattedDate(date);
+        }
+        function buttonFormat(value, row, index) {
+            return '<a href="javascript:void(0)" onclick="editrow(this)">Edit</a> ';
+        }
+        function editrow(target) {
+            var tr = $(target).closest('tr.datagrid-row');
+            var index = parseInt(tr.attr('datagrid-row-index'));
+            var row = $('#dg').datagrid('getRows')[index];
+
+            $('#form').form('load', row);
+            var add = document.getElementById("addBtn");
+            add.type = "hidden";
+            var edit = document.getElementById("editBtn");
+            edit.type = "submit";
+            $('#dlg').dialog('open');
+                      
+        }
+        function formattedDate(date) {
+            var d = new Date(date || Date.now()),
+                month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+
+            return [day, month, year].join('/');
+        }
+        function myformatter(date) {
+            var y = date.getFullYear();
+            var m = date.getMonth() + 1;
+            var d = date.getDate();
+            return y + '-' + (m < 10 ? ('0' + m) : m) + '-' + (d < 10 ? ('0' + d) : d);
+        }
+        function myparser(s) {
+            if (!s) return new Date();
+            var ss = (s.split('-'));
+            var y = parseInt(ss[0], 10);
+            var m = parseInt(ss[1], 10);
+            var d = parseInt(ss[2], 10);
+            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+                return new Date(y, m - 1, d);
+            } else {
+                return new Date();
+            }
+        }
+    </script>
