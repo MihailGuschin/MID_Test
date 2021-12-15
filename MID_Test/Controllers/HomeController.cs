@@ -42,13 +42,24 @@ namespace MID_Test.Controllers
             var e = db.Employees.ToList();
             var ej = JsonConvert.SerializeObject(e);
             upload = Request.Files["file1"];
-            if (upload != null)
+            
+            if (upload != null && upload.ContentType.Contains("json"))
             {
                 byte[] jsonArray = new byte[upload.ContentLength];
                 upload.InputStream.Read(jsonArray, 0, upload.ContentLength);
 
                 string jsonStr = Encoding.UTF8.GetString(jsonArray);
-                var empls = JsonConvert.DeserializeObject<List<Employee>>(jsonStr);
+                List<Employee> empls = null;
+                try
+                {
+                    empls = JsonConvert.DeserializeObject<List<Employee>>(jsonStr);
+                }
+                catch
+                {
+                    ModelState.AddModelError("", "Неверный формат файла");
+                    return RedirectToAction("Index");
+                }
+
                 StringBuilder sb = new StringBuilder();               
 
                 foreach(var employee in empls)

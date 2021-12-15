@@ -25,9 +25,10 @@
 <div id="ff" class="easyui-dialog" title="Добавить файл" data-options="iconCls:'icon-save', closed:true" style="width:400px;height:600px;padding:10px">
     @using (Html.BeginForm("SendFile", "Home", FormMethod.Post, new { id = "uploadFile", enctype = "multipart/form-data" }))
     {
+        @Html.ValidationSummary(true)<br>
         <input id="chooseFile" class="easyui-filebox" name="file1" data-options="prompt:'Choose a file...'" style="width:200px">
         <a id="btn_add" href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="sendFile()">Add File</a>
-    }    
+    }
 </div>
 
     <div id="dlg" class="easyui-dialog" title="Добавить сотрудника" data-options="iconCls:'icon-save', closed: @((Model == null).ToString().ToLower())" style="width:400px;height:600px;padding:10px">
