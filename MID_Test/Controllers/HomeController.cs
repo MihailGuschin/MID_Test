@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,14 @@ namespace MID_Test.Controllers
         [HttpPost]
         public ActionResult Edit(Employee model)
         {
-            return null;
+            Validate(model);
+            if(ModelState.IsValid)
+            {
+                db.Entry(model).State = EntityState.Modified;
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View("Index", model);
         }
 
         [HttpGet]
@@ -72,13 +80,6 @@ namespace MID_Test.Controllers
                 }
                 db.SaveChanges();
 
-                //string path = Server.MapPath("~/Files/result.txt");
-                //FileStream fs = new FileStream(path, FileMode.Create);
-                //System.IO.File.WriteAllText(path, sb.ToString());
-                //string file_type = "application/txt";
-                //string file_name = "result.txt";
-                //return File(fs, file_type, file_name);
-
                 return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/plain", "result.txt");
             }
             return RedirectToAction("Index");
@@ -90,6 +91,19 @@ namespace MID_Test.Controllers
             {
                 ModelState.AddModelError("", "Сотрудник уже существует");
             }
+            Validate(employee);
+            if (ModelState.IsValid)
+            {
+                var employees = db.Employees;
+                employees.Add(employee);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(employee);
+        }
+
+        private void Validate(Employee employee)
+        {            
             if (employee.IsInternal && employee.Number == null)
             {
                 ModelState.AddModelError("", "Если сотрудник штатный, то обязательно нужно указывать табельный номер");
@@ -98,14 +112,6 @@ namespace MID_Test.Controllers
             {
                 ModelState.AddModelError("", "Если сотрудник внешний, то поле табельным номером должно быть пустым");
             }
-            if (ModelState.IsValid)
-            {
-                var employees = db.Employees;                
-                employees.Add(employee);
-                db.SaveChanges();
-                return RedirectToAction("Index");
-            }
-            return View(employee);
         }
     }
 }
