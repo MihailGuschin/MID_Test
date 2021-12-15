@@ -55,28 +55,28 @@ namespace MID_Test.Controllers
                 {
                     if (employee.IsInternal && employee.Number == null)
                     {
-                        sb.Append($"ошибка для {employee.Number} - {employee.IsInternal}");
+                        sb.Append($"ошибка для {employee.Name} - {employee.Number}");
                         sb.AppendLine();
                         continue;
                     }
                     if (employee.IsInternal == false && employee.Number != null)
                     {
-                        sb.Append($"ошибка для {employee.Number} - {employee.IsInternal}");
+                        sb.Append($"ошибка для {employee.Name} - {employee.Number}");
                         sb.AppendLine();
                         continue;
                     }
                     if (db.Employees.Any(x => x.Id == employee.Id))
                     {
-                        sb.Append($"Изменена запись {employee.Id} {employee.Name}");
+                        sb.Append($"Изменена запись {employee.Id} {employee.Name} - {employee.Number}");
                         sb.AppendLine();
+                        db.Entry(employee).State = EntityState.Modified;
                     }
                     else
                     {
-                        sb.Append($"Добавлена запись {employee.Id} {employee.Name}");
+                        sb.Append($"Добавлена запись {employee.Id} {employee.Name} - {employee.Number}");
                         sb.AppendLine();
-                    }
-
-                    db.Employees.Add(employee);
+                        db.Employees.Add(employee);
+                    }                    
                 }
                 db.SaveChanges();
 
